@@ -1,0 +1,530 @@
+openapi: 3.0.0
+info:
+  title: Movie Theatre Management System
+  version: 1.0.0
+  description: API for managing movies, screenings, tickets and halls
+
+paths:
+
+  /auth/login:
+    post:
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        "200":
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "JWT_TOKEN"
+        "401":
+          description: Invalid credentials
+
+  /users:
+    post:
+      summary: Register user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+      responses:
+        "201":
+          description: User created
+        "400":
+          description: Validation error
+
+    get:
+      summary: Get all users (paginated)
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: size
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Users list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+
+  /users/{id}:
+    get:
+      summary: Get user by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        "200":
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        "404":
+          description: Not found
+    delete:
+      summary: Delete user
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        "200":
+          description: User deleted
+        "404":
+          description: Not found
+
+  /movies:
+    get:
+      summary: Get movies with filters
+      parameters:
+        - name: genre
+          in: query
+          schema:
+            type: string
+        - name: minRating
+          in: query
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Movies list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Movie'
+
+    post:
+      summary: Create movie (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovieCreate'
+      responses:
+        "201":
+          description: Movie created
+        "400":
+          description: Invalid data
+
+  /movies/{id}:
+    get:
+      summary: Get movie by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        "200":
+          description: Movie found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movie'
+        "404":
+          description: Not found
+
+    delete:
+      summary: Delete movie
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        "200":
+          description: Movie deleted
+        "404":
+          description: Not found
+
+  /screenings:
+    get:
+      summary: Get screenings (filter by movie/date)
+      parameters:
+        - name: movieId
+          in: query
+          schema:
+            type: integer
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Screenings list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Screening'
+
+    post:
+      summary: Create screening
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScreeningCreate'
+      responses:
+        "201":
+          description: Screening created
+        "400":
+          description: Invalid data
+
+  /screening/{id}:
+    get:
+      summary: Get screening by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        "200":
+          description: Screening found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Screening'
+        "404":
+          description: Not found
+    delete:
+      summary: Cancel screening
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        "200":
+          description: Screening canceled
+        "404":
+          description: Not found
+
+  /screenings/{id}/available-seats:
+    get:
+      summary: Get available seats
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        "200":
+          description: Available seats
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+
+  /tickets:
+    post:
+      summary: Buy ticket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketCreate'
+      responses:
+        "201":
+          description: Ticket purchased
+        "400":
+          description: Seat taken or invalid
+
+    get:
+      summary: Get user tickets
+      parameters:
+        - name: userId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Tickets list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticket'
+
+  /tickets/{id}:
+    get:
+      summary: Get ticket by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        "200":
+          description: Ticket found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        "404":
+          description: Not found
+    delete:
+      summary: Cancel ticket
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        "200":
+          description: Ticket canceled
+        "404":
+          description: Not found
+
+  /halls:
+    get:
+      summary: Get all halls
+      responses:
+        "200":
+          description: Halls list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Hall'
+
+    post:
+      summary: Create hall (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HallCreate'
+      responses:
+        "201":
+          description: Hall created
+        "400":
+          description: Invalid data
+
+  /halls/{id}:
+    get:
+      summary: Get hall by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        "200":
+          description: Hall found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Hall'
+        "404":
+          description: Not found
+    delete:
+      summary: Remove hall
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        "200":
+          description: Hall removed
+        "404":
+          description: Not found
+
+components:
+
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+
+  schemas:
+
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        birthDate:
+          type: string
+          format: date
+
+    UserCreate:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          minLength: 2
+          maxLength: 20
+        password:
+          type: string
+          minLength: 5
+          maxLength: 20
+        firstName:
+          type: string
+          maxLength: 20
+        lastName:
+          type: string
+          maxLength: 20
+        birthDate:
+          type: string
+          format: date
+
+    Movie:
+      type: object
+      properties:
+        id:
+          type: integer
+        imageUrl:
+          type: string
+        title:
+          type: string
+        genre:
+          type: string
+        releaseDate:
+          type: string
+          format: date
+        durationMinutes:
+          type: integer
+        rating:
+          type: number
+
+    MovieCreate:
+      type: object
+      required: [title, genre, description]
+      properties:
+        imageUrl:
+          type: string
+        title:
+          type: string
+          minLength: 2
+          maxLength: 50
+        genre:
+          type: string
+          minLength: 2
+          maxLength: 50
+        releaseDate:
+          type: string
+          format: date
+        durationMinutes:
+          type: integer
+        rating:
+          type: number
+          minimum: 0
+          maximum: 5
+
+    Screening:
+      type: object
+      properties:
+        id:
+          type: integer
+        movieId:
+          type: integer
+        hallId:
+          type: integer
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        price:
+          type: number
+        type:
+          type: integer
+
+    ScreeningCreate:
+      type: object
+      required: [movieId, hallId, startTime, endTime, price, type]
+      properties:
+        movieId:
+          type: integer
+        hallId:
+          type: integer
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        price:
+          type: number
+        type:
+          type: integer
+
+    Ticket:
+      type: object
+      properties:
+        id:
+          type: integer
+        screeningId:
+          type: integer
+        userId:
+          type: integer
+        seatNum:
+          type: integer
+        phoneNum:
+          type: string
+
+    TicketCreate:
+      type: object
+      required: [screeningId, userId, seatNum]
+      properties:
+        screeningId:
+          type: integer
+        userId:
+          type: integer
+        seatNum:
+          type: integer
+        phoneNum:
+          type: string
+          maxLength: 15
+
+    Hall:
+      type: object
+      properties:
+        id:
+          type: integer
+        hallNumber:
+          type: integer
+        seats:
+          type: integer
+        is3D:
+          type: boolean
+        soundSystem:
+          type: integer
+        isPremium:
+          type: boolean
+
+    HallCreate:
+      type: object
+      required: [hallNumber, seats]
+      properties:
+        hallNumber:
+          type: integer
+        seats:
+          type: integer
+        is3D:
+          type: boolean
+        soundSystem:
+          type: integer
+        isPremium:
+          type: boolean
